@@ -8,6 +8,12 @@ pub struct RukuConfig {
     pub port: u16,
     #[validate(length(min = 1, max = 20))]
     pub version: Option<String>,
+    #[validate(length(min = 1, max = 50))]
+    pub install_cmd: Option<String>,
+    #[validate(length(min = 1, max = 50))]
+    pub build_cmd: Option<String>,
+    #[validate(length(min = 1, max = 50))]
+    pub start_cmd: Option<String>,
 }
 
 fn validate_port(port: u16) -> Result<(), ValidationError> {

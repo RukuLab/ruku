@@ -71,7 +71,8 @@ impl<'a> Deploy<'a> {
         };
 
         if let Err(e) = create_docker_image(self.path, envs, &options, &build_options).await {
-            self.log.error(&format!("Error creating Docker image at path {}: {}", self.path, e));
+            self.log
+                .error(&format!("Error creating Docker image at path {}: {}", self.path, e));
             std::process::exit(1);
         }
 

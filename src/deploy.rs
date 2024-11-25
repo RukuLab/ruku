@@ -1,5 +1,6 @@
 use nixpacks::create_docker_image;
 use nixpacks::nixpacks::builder::docker::DockerBuilderOptions;
+use nixpacks::nixpacks::plan::phase::{Phase, StartPhase};
 use nixpacks::nixpacks::plan::{generator::GeneratePlanOptions, BuildPlan};
 
 use crate::container::Container;
@@ -37,7 +38,22 @@ impl<'a> Deploy<'a> {
 
         // Nix pack
         let envs: Vec<&str> = vec![];
-        let cli_plan = BuildPlan::default();
+        let mut cli_plan = BuildPlan::default();
+        if let Some(install_cmds) = &self.config.install_cmd {
+            let mut install = Phase::install(None);
+            install.cmds = Some(vec![install_cmds.clone()]);
+            cli_plan.add_phase(install);
+        }
+        if let Some(build_cmds) = &self.config.build_cmd {
+            let mut build = Phase::build(None);
+            build.cmds = Some(vec![build_cmds.clone()]);
+            cli_plan.add_phase(build);
+        }
+        if let Some(start_cmd) = &self.config.start_cmd {
+            let start = StartPhase::new(start_cmd.clone());
+            cli_plan.set_start_phase(start);
+        }
+
         let options = GeneratePlanOptions {
             plan: Some(cli_plan),
             config_file: None,
@@ -70,13 +86,11 @@ impl<'a> Deploy<'a> {
             docker_cert_path: None,
         };
 
-        create_docker_image(self.path, envs, &options, &build_options)
-            .await
-            .unwrap_or_else(|e| {
-                self.log
-                    .error(&format!("Error creating Docker image at path {}: {}", self.path, e));
-                std::process::exit(1);
-            });
+        if let Err(e) = create_docker_image(self.path, envs, &options, &build_options).await {
+            self.log
+                .error(&format!("Error creating Docker image at path {}: {}", self.path, e));
+            std::process::exit(1);
+        }
 
         self.log.step(&format!(
             "Image created successfully with tag {}",

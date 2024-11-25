@@ -22,8 +22,12 @@ test:
 format:
 	cargo fmt
 
+# Update dependencies
+.PHONY: update
+update:
+	cargo update
+
 # Lint the code
 .PHONY: lint
 lint:
 	cargo clippy -- -D warnings
-

@@ -54,6 +54,9 @@ impl<'a> Deploy<'a> {
             cli_plan.set_start_phase(start);
         }
 
+        // Handle providers if specified
+        cli_plan.providers = self.config.providers.clone();
+
         let options = GeneratePlanOptions {
             plan: Some(cli_plan),
             config_file: None,

@@ -130,6 +130,7 @@ cat | RUKU_ROOT="{}" {} git-hook {}
             self.checkout_latest(&app_path, new_rev, branch);
         }
     }
+    
     fn checkout_latest(&self, app_path: &Path, new_rev: &str, branch: &str) {
         unsafe {
             env::set_var("GIT_DIR", app_path.join(".git").display().to_string());

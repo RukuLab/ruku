@@ -1,0 +1,4 @@
+port: 8080
+build_cmd: ./build.sh # Optional
+start_cmd: ./run.sh # Optional
+providers: ["...", "node"] # Optional

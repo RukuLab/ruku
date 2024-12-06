@@ -18,7 +18,8 @@ pub struct RukuConfig {
     pub providers: Option<Vec<String>>,
 }
 
-const ALLOWED_PROVIDERS: [&str; 24] = [
+const ALLOWED_PROVIDERS: [&str; 25] = [
+    "...",
     "clojure",
     "cobol",
     "crystal",

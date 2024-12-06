@@ -1,6 +1,6 @@
 [package]
 name = "ruku"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["joker666 <mr.k779@outlook.com>"]
 description = "A tiny PaaS. Ruku allows you to do git push deployments to your own servers."
 edition = "2021"

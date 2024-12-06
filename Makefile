@@ -27,6 +27,16 @@ format:
 update:
 	cargo update
 
+# Dry run upgrade
+.PHONY: dry_run_upgrade
+dry_run_upgrade:
+	cargo upgrade -i --dry-run
+
+# Upgrade dependencies
+.PHONY: upgrade
+upgrade:
+	cargo upgrade
+
 # Lint the code
 .PHONY: lint
 lint:

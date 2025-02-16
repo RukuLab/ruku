@@ -2,9 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
-use std::{env, fs, io};
-
-use cmd_lib::{run_cmd, run_fun};
+use std::{env, fs, io, process::Command};
 
 use crate::logger::Logger;
 use crate::misc::sanitize_app_name;
@@ -32,14 +30,14 @@ impl<'a> Git<'a> {
                 std::process::exit(1);
             });
 
-            run_cmd!(
-                cd $git_root;
-                git init --quiet --bare $app;
-            )
-            .unwrap_or_else(|e| {
-                self.log.error(&format!("Error executing git init: {}", e));
-                std::process::exit(1);
-            });
+            Command::new("git")
+                .current_dir(git_root)
+                .args(["init", "--quiet", "--bare", &app])
+                .status()
+                .unwrap_or_else(|e| {
+                    self.log.error(&format!("Error executing git init: {}", e));
+                    std::process::exit(1);
+                });
 
             let hook_content = format!(
                 r#"#!/usr/bin/env bash
@@ -81,14 +79,14 @@ cat | RUKU_ROOT="{}" {} git-hook {}
     }
 
     fn run_git_shell(&self, git_root: &str, git_command: String) {
-        run_cmd!(
-            cd $git_root;
-            git-shell -c "$git_command";
-        )
-        .unwrap_or_else(|e| {
-            self.log.error(&format!("Error executing git shell: {}", e));
-            std::process::exit(1);
-        });
+        Command::new("git-shell")
+            .current_dir(git_root)
+            .args(["-c", &git_command])
+            .status()
+            .unwrap_or_else(|e| {
+                self.log.error(&format!("Error executing git shell: {}", e));
+                std::process::exit(1);
+            });
     }
 
     pub fn cmd_git_hook(&self, app: &str) {
@@ -121,10 +119,15 @@ cat | RUKU_ROOT="{}" {} git-hook {}
                 }
 
                 self.log.step("Cloning git repository");
-                run_cmd!(git clone --quiet --no-checkout $repo_path $app_path).unwrap_or_else(|e| {
-                    self.log.error(&format!("Error cloning git repo: {}", e));
-                    std::process::exit(1);
-                });
+                Command::new("git")
+                    .args(["clone", "--quiet", "--no-checkout"])
+                    .arg(&repo_path)
+                    .arg(&app_path)
+                    .status()
+                    .unwrap_or_else(|e| {
+                        self.log.error(&format!("Error cloning git repo: {}", e));
+                        std::process::exit(1);
+                    });
             }
 
             self.checkout_latest(&app_path, new_rev, branch);
@@ -142,27 +145,44 @@ cat | RUKU_ROOT="{}" {} git-hook {}
             .step(&format!("Checking out the latest code from branch: {}", branch));
 
         // Get the current branch
-        let current_branch = run_fun!(git rev-parse --abbrev-ref HEAD).unwrap_or_else(|e| {
-            self.log.error(&format!("Error getting current branch: {}", e));
-            std::process::exit(1);
-        });
+        let current_branch = String::from_utf8(
+            Command::new("git")
+                .args(["rev-parse", "--abbrev-ref", "HEAD"])
+                .output()
+                .unwrap_or_else(|e| {
+                    self.log.error(&format!("Error getting current branch: {}", e));
+                    std::process::exit(1);
+                })
+                .stdout,
+        )
+        .unwrap();
 
         // Check if the current branch is the same as the target branch
         if current_branch.trim() != branch {
-            run_cmd!(git checkout $branch).unwrap_or_else(|e| {
-                self.log.error(&format!("Error checking out latest code: {}", e));
-                std::process::exit(1);
-            });
+            Command::new("git")
+                .args(["checkout", branch])
+                .status()
+                .unwrap_or_else(|e| {
+                    self.log.error(&format!("Error checking out latest code: {}", e));
+                    std::process::exit(1);
+                });
         }
 
         // Checkout the latest code
-        run_cmd!(
-            git fetch --quiet;
-            git reset --hard $new_rev;
-        )
-        .unwrap_or_else(|e| {
-            self.log.error(&format!("Error checking out latest code: {}", e));
-            std::process::exit(1);
-        });
+        Command::new("git")
+            .args(["fetch", "--quiet"])
+            .status()
+            .unwrap_or_else(|e| {
+                self.log.error(&format!("Error fetching latest code: {}", e));
+                std::process::exit(1);
+            });
+
+        Command::new("git")
+            .args(["reset", "--hard", new_rev])
+            .status()
+            .unwrap_or_else(|e| {
+                self.log.error(&format!("Error resetting to latest code: {}", e));
+                std::process::exit(1);
+            });
     }
 }

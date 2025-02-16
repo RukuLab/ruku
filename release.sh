@@ -38,7 +38,7 @@ update_version_file() {
         echo "File $file does not exist."
         exit 1
     fi
-    sleep 1
+    sleep 2
 }
 
 # Commit and push the changes

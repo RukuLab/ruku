@@ -12,6 +12,7 @@ repository = "https://github.com/Joker666/ruku"
 bollard = "0.18.1"
 clap = { version = "4.5.29", features = ["derive"] }
 colored = "2.2.0"
+futures = "0.3.30"
 home = "0.5.11"
 nixpacks = "1.33.0"
 port-selector = "0.1.6"

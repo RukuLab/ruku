@@ -189,6 +189,7 @@ fn get_ruku_config(log: &Logger, repo: &str, server_config: &ServerConfig) -> Ru
         std::process::exit(1);
     });
 
+    // Validate the config
     match config.validate() {
         Ok(_) => (),
         Err(e) => {
